@@ -2091,40 +2091,25 @@ def get_n_unique_actions(agents, states):
 # ===== BATCH =====
 # =================
 
-def make_env(idx, args, env_function, process_seeds):
-        # Use different random seeds for train and test envs
-        process_seed = int(process_seeds[idx])
-        env_seed = process_seed
-        env = env_function(args)
-        env.seed(env_seed)
-        return env
+def make_env_with_seed(idx, args, env_function, seed_value):
+    """Module-level function that can be pickled - takes individual seed value"""
+    env = env_function(args)
+    env.seed(seed_value)
+    return env
 
 def setup_batch_env(args, env_function, num_envs=1, seed=0):
     """
     Setting up batch environment
-
-    Parameters
-    ----------
-    info : dict containing info of environment
-    env_function : function to create a single environment
-    num_envs : number of environments to create
-    seed : integer of seed
-
-    Returns
-    -------
-    vec_env
     """
-    # Set different random seeds for different subprocesses.
-    # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
-    # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
+    # Calculate seeds for each process
     process_seeds = np.arange(num_envs) + seed * num_envs
     assert process_seeds.max() < 2**32
 
-    # start = time.time()
-
-    vec_env = pfrl.envs.MultiprocessVectorEnv(
-        [functools.partial(make_env, idx, args, env_function, process_seeds,) for idx in range(num_envs)]
-    )
+    # Create partial functions with individual seed values (not the whole array)
+    vec_env = pfrl.envs.MultiprocessVectorEnv([
+        functools.partial(make_env_with_seed, idx, args, env_function, int(process_seeds[idx]))
+        for idx in range(num_envs)
+    ])
 
     return vec_env
 
