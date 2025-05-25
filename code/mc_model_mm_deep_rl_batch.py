@@ -2114,6 +2114,26 @@ def setup_batch_env(args, env_function, num_envs=1, seed=0):
     return vec_env
 
 
+def deep_env_function(args):
+    """
+    Returns an instance of the environment
+
+    Parameters
+    ----------
+    args : dictionary
+        parameters used for creating the instance
+
+    Returns
+    -------
+    env : object
+        an instance of the environment
+    """
+    from environments.mc_model.mc_environment_deep import MonteCarloEnvDeep
+
+    EnvClass = MonteCarloEnvDeep
+    env = EnvClass(**args)
+    return env
+
 def get_env_function():
     """
     Returns a function used for creating an instance of the environment
@@ -2127,25 +2147,4 @@ def get_env_function():
     env_function : fnc
         function used for creating an instance of the environment
     """
-
-    def deep_env_function(args):
-        """
-        Returns an instance of the environment
-
-        Parameters
-        ----------
-        args : dictionary
-            parameters used for creating the instance
-
-        Returns
-        -------
-        env : object
-            an instance of the environment
-        """
-        from environments.mc_model.mc_environment_deep import MonteCarloEnvDeep
-
-        EnvClass = MonteCarloEnvDeep
-        env = EnvClass(**args)
-        return env
-
     return deep_env_function
